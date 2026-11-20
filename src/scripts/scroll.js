@@ -102,7 +102,8 @@ if (!quieto) {
     }, { target: video, offset: ['start end', 'center 0.55'] });
   });
 
-  // Interactivo y glosario
+  // Interactivo, experiencias y glosario
+  entrar('.carta', { y: [70, 0], rotate: [-4, 0] }, { grupo: '.eleccion', pausa: 0.15, cantidad: 0.3 });
   entrar('.tablero', { scale: [0.82, 1], rotate: [-3, 0], y: [80, 0] }, { cantidad: 0.12 });
   entrar('details', { y: [40, 0] }, { grupo: '.terminos', pausa: 0.05, cantidad: 0.15 });
 
