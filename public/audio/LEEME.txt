@@ -1,0 +1,11 @@
+Coloca aquí los audios del podcast "Lo que no dije" con estos nombres exactos:
+
+  episodio-1.mp3
+  episodio-2.mp3
+  episodio-3.mp3
+
+(Los .ogg originales se convirtieron a .mp3 para que suenen en iPhone;
+el sitio usa los .mp3.)
+
+Recomendado: MP3 mono a 96 kbps (un episodio de 9 min pesa unos 6-7 MB),
+para que cargue bien con datos móviles.

@@ -1,0 +1,15 @@
+---
+const { textos, clase = '' } = Astro.props;
+const repetido = Array.from({ length: 5 }, () => textos).flat();
+---
+<div class:list={['cinta', clase]} aria-hidden="true">
+  <p data-cinta>{repetido.map((t) => <span>{t}</span>)}</p>
+</div>
+
+<style>
+  /* El relleno inferior extra queda debajo de la sección siguiente, que se monta 4rem. */
+  .cinta { position: relative; overflow: clip; padding: 1.1rem 0 calc(1.1rem + 4rem); }
+  p { display: flex; gap: 2.5rem; width: max-content; max-width: none; margin: 0; white-space: nowrap; font-family: var(--display); font-weight: 800; font-size: var(--paso-2); line-height: 1; font-variation-settings: 'wdth' 85; }
+  span { display: flex; align-items: center; gap: 2.5rem; }
+  span::after { content: ''; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; opacity: 0.55; }
+</style>

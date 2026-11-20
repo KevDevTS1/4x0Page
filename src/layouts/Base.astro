@@ -1,0 +1,207 @@
+---
+import '@fontsource-variable/bricolage-grotesque/wdth.css';
+import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+import '../styles/global.css';
+import { lineas } from '../data/contenido.js';
+import Logo from '../components/Logo.astro';
+
+const { titulo, descripcion, inicio = '', actual } = Astro.props;
+// id: sección de la portada que activa el enlace al pasar por ella.
+const secciones = [
+  { nombre: 'El pico', href: `${inicio}#el-pico`, id: 'el-pico', color: 'var(--sol)' },
+  { nombre: 'Crónica', href: '/cronica', id: 'cronica', color: 'var(--menta)' },
+  { nombre: 'Podcast', href: `${inicio}#podcast`, id: 'podcast', color: 'var(--sol)' },
+  { nombre: 'Documental', href: `${inicio}#documental`, id: 'documental', color: 'var(--menta)' },
+  { nombre: '¿Y tú cómo estás?', href: `${inicio}#como-estas`, id: 'como-estas', color: 'var(--rosa)' },
+];
+---
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <meta name="theme-color" content="#2a1ae6" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+    <header class="barra">
+      <a class="marca" href="/" aria-label="Cuatro por Cero, inicio">
+        <Logo uid="nav" capas={3} paso={2} sombra="var(--azul)" />
+      </a>
+      <button class="menu-boton" type="button" aria-expanded="false" aria-controls="menu" data-menu-boton>Menú</button>
+      <nav id="menu" aria-label="Secciones" data-nav>
+        <span class="indicador" data-indicador aria-hidden="true"></span>
+        {secciones.map((s) => (
+          <a href={s.href} data-spy={s.id} data-color={s.color} style={`--c:${s.color}`} aria-current={actual === s.id ? 'page' : undefined}>{s.nombre}</a>
+        ))}
+      </nav>
+      <a class="llamar" href="tel:106">
+        <span class="largo">¿Necesitas hablar ahora?</span> Llama al 106
+      </a>
+      <span class="progreso" data-progreso aria-hidden="true"></span>
+    </header>
+
+    <main id="contenido"><slot /></main>
+
+    <footer class="pie lamina fondo-tinta">
+      <div class="dentro">
+        <p class="cierre">No estás solo. Haces parte del 4×0.</p>
+        <ul class="lineas">
+          {lineas.map((l) => (
+            <li>
+              <a href={`tel:${l.numero}`}>{l.nombre}</a>
+              <span>{l.detalle}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="nota">
+          Cuatro por Cero es un especial periodístico de prevención. No reemplaza la atención
+          de un profesional de salud. Cifras: tasas de intento de suicidio por cada 100.000
+          habitantes, Colombia 2016-2021 (INS / DANE).
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<script>
+  import { animate, scroll, stagger } from 'motion';
+  import '../scripts/scroll.js';
+
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const escritorio = matchMedia('(min-width: 62rem)');
+  const nav = document.querySelector('[data-nav]');
+  const enlaces = [...nav.querySelectorAll('a')];
+  const indicador = nav.querySelector('[data-indicador]');
+  const boton = document.querySelector('[data-menu-boton]');
+  let activo = enlaces.find((a) => a.hasAttribute('aria-current')) || null;
+
+  function mover(a) {
+    if (!escritorio.matches) return;
+    if (!a) return void animate(indicador, { opacity: 0 }, { duration: 0.2 });
+    indicador.style.background = a.dataset.color;
+    animate(indicador, { x: a.offsetLeft, width: a.offsetWidth, opacity: 1 },
+      quieto ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 });
+  }
+  function marcar(a) {
+    activo = a || null;
+    enlaces.forEach((e) => e.classList.toggle('activo', e === activo));
+    if (!nav.matches(':hover')) mover(activo);
+  }
+
+  enlaces.forEach((a) => {
+    a.addEventListener('pointerenter', () => mover(a));
+    a.addEventListener('focus', () => mover(a));
+    a.addEventListener('click', () => abrir(false));
+  });
+  nav.addEventListener('pointerleave', () => mover(activo));
+  nav.addEventListener('focusout', () => mover(activo));
+  addEventListener('resize', () => mover(activo));
+  // Los anchos cambian cuando termina de cargar la tipografía.
+  document.fonts.ready.then(() => mover(activo));
+
+  // Portada: el enlace activo sigue a la sección que cruza el centro de la
+  // pantalla. Inicio y glosario no tienen enlace y apagan la píldora.
+  const porId = new Map(enlaces.map((a) => [a.dataset.spy, a]));
+  const zonas = ['inicio', ...porId.keys(), 'glosario'].map((id) => document.getElementById(id)).filter(Boolean);
+  if (zonas.length > 1) {
+    const io = new IntersectionObserver((entradas) => {
+      entradas.forEach((e) => e.isIntersecting && marcar(porId.get(e.target.id)));
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    zonas.forEach((z) => io.observe(z));
+  }
+
+  function abrir(si) {
+    boton.setAttribute('aria-expanded', String(si));
+    boton.textContent = si ? 'Cerrar' : 'Menú';
+    nav.classList.toggle('abierto', si);
+    if (si && !quieto && !escritorio.matches) {
+      animate(enlaces, { opacity: [0, 1], x: [-28, 0] }, { delay: stagger(0.06), duration: 0.3 });
+    }
+  }
+  boton.addEventListener('click', () => abrir(boton.getAttribute('aria-expanded') !== 'true'));
+  addEventListener('keydown', (e) => e.key === 'Escape' && abrir(false));
+
+  scroll(animate('[data-progreso]', { scaleX: [0, 1] }, { ease: 'linear' }));
+  if (!quieto) scroll(animate('.barra [data-por]', { rotate: [0, 720] }, { ease: 'linear' }));
+</script>
+
+<style>
+  .saltar { position: absolute; left: -999rem; top: 0; z-index: 100; background: var(--sol); color: var(--tinta); padding: 0.6rem 1rem; }
+  .saltar:focus { left: 0; }
+
+  .barra {
+    position: sticky; top: 0; z-index: 50; height: var(--barra);
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0 clamp(0.8rem, 3vw, 2rem);
+    background: var(--tinta);
+  }
+  .progreso { position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: var(--sol); transform-origin: left; transform: scaleX(0); }
+
+  .marca { display: block; transition: transform 0.2s; }
+  .marca :global(svg) { height: 2.6rem; width: auto; }
+  .marca:hover { transform: scale(1.12) rotate(-4deg); }
+
+  .menu-boton {
+    background: transparent; border: 2px solid var(--blanco); border-radius: 999px;
+    padding: 0.4rem 1rem; font-family: var(--display); font-weight: 700;
+  }
+  .menu-boton[aria-expanded='true'] { background: var(--sol); border-color: var(--sol); color: var(--tinta); }
+
+  nav {
+    position: fixed; top: var(--barra); left: 0; right: 0; display: none; flex-direction: column;
+    background: var(--tinta); padding: 1rem clamp(0.8rem, 3vw, 2rem) 1.6rem; border-bottom: 5px solid var(--sol);
+  }
+  nav.abierto { display: flex; }
+  nav a {
+    display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 0;
+    font-family: var(--display); font-weight: 800; font-size: var(--paso-2); line-height: 1.1;
+    text-decoration: none; border-bottom: 2px solid #ffffff22;
+  }
+  nav a::before { content: ''; flex: none; width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--c); }
+  nav a.activo, nav a[aria-current] { color: var(--c); }
+  .indicador { display: none; }
+
+  .llamar {
+    margin-left: auto; background: var(--rosa); color: var(--tinta);
+    font-weight: 700; font-size: var(--paso--1); text-decoration: none;
+    padding: 0.55rem 1.1rem; border-radius: 999px; white-space: nowrap;
+    animation: pulso 2.4s ease-out infinite;
+  }
+  .llamar:hover { background: var(--sol); }
+  .llamar .largo { display: none; }
+  @keyframes pulso { 0% { box-shadow: 0 0 0 0 #ff2d78aa; } 70%, 100% { box-shadow: 0 0 0 12px #ff2d7800; } }
+
+  @media (min-width: 62rem) {
+    .menu-boton { display: none; }
+    nav {
+      position: relative; top: auto; display: flex; flex-direction: row; align-items: center;
+      gap: 0.15rem; padding: 0; border: 0; background: none; margin-right: auto;
+    }
+    nav a {
+      position: relative; padding: 0.55rem 1.05rem; border: 0; border-radius: 999px;
+      font-weight: 700; font-size: 1.08rem; transition: color 0.15s;
+    }
+    nav a::before { display: none; }
+    /* El texto queda en tinta solo donde está la píldora: el enlace activo,
+       o el que tiene el cursor mientras dure el hover. */
+    nav a.activo, nav a[aria-current], nav a:hover, nav a:focus-visible { color: var(--tinta); }
+    nav:hover a.activo:not(:hover), nav:hover a[aria-current]:not(:hover) { color: var(--blanco); }
+    .indicador {
+      display: block; position: absolute; left: 0; top: 50%; height: 2.5rem; margin-top: -1.25rem;
+      width: 0; opacity: 0; border-radius: 999px; background: var(--sol);
+    }
+    .llamar { margin-left: 0; }
+    .llamar .largo { display: inline; }
+  }
+
+  .cierre { font-family: var(--display); font-weight: 800; font-size: var(--paso-2); line-height: 1.05; color: var(--sol); max-width: 18ch; }
+  .lineas { list-style: none; padding: 0; margin: 2.5rem 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .lineas a { display: block; font-family: var(--display); font-weight: 800; font-size: var(--paso-2); color: var(--menta); text-decoration: none; }
+  .lineas a:hover { text-decoration: underline; }
+  .lineas span { display: block; max-width: 30ch; }
+  .nota { font-size: var(--paso--1); color: var(--lila); max-width: 70ch; }
+</style>

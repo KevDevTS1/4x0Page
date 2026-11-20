@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ElPico from '../components/ElPico.astro';
+import Medios from '../components/Medios.astro';
+import Interactivo from '../components/Interactivo.astro';
+import Glosario from '../components/Glosario.astro';
+import Cinta from '../components/Cinta.astro';
+---
+<Base
+  titulo="Cuatro por Cero: pedir ayuda es el primer paso"
+  descripcion="Especial de prevención del suicidio juvenil en Colombia. Cifras 2016-2021, historias, señales de alerta y líneas de ayuda gratuitas para jóvenes de 17 a 21 años."
+>
+  <Hero />
+  <ElPico />
+  <Cinta clase="fondo-rosa" textos={['Cero motivos para callar', 'Pedir ayuda es el primer paso']} />
+
+  <section id="cronica" class="lamina fondo-azul avance-cronica">
+    <div class="dentro cabeza">
+      <div>
+      <h2>«Diecisiete»</h2>
+      <p class="entrada">
+        Crónica de una vida que no cabe en la estadística. María tenía diecisiete años cuando
+        una tarde en Ibagué le partió la vida en dos. Esta es la historia de cómo la reconstruyó.
+      </p>
+      <p class="aviso">Lectura de 4 minutos. Narra un secuestro y violencia sexual.</p>
+      <a class="boton" href="/cronica">Leer la crónica</a>
+      </div>
+      <img class="ilustra" src="/img/cronica.jpg" width="1344" height="752" loading="lazy" alt="Ilustración: una joven con morral sube de espaldas unas escaleras hacia un sol amarillo, con montañas al fondo." />
+    </div>
+  </section>
+
+  <Medios />
+  <Cinta clase="fondo-sol" textos={['No estás solo', 'Haces parte del 4×0']} />
+  <Interactivo />
+  <Glosario />
+</Base>
+
+<style>
+  .avance-cronica h2 { color: var(--sol); font-size: clamp(3.2rem, 9vw, 7.5rem); font-variation-settings: 'wdth' 75; }
+  .aviso { margin: 1.5rem 0 2rem; font-size: var(--paso--1); color: var(--lila); }
+</style>

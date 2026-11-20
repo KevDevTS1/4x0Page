@@ -1,0 +1,89 @@
+---
+import { episodios } from '../data/contenido.js';
+---
+<section id="podcast" class="lamina fondo-sol sobre-claro">
+  <div class="dentro">
+    <div class="cabeza">
+      <div>
+        <h2>Lo que no dije</h2>
+        <p class="entrada">
+          Entre los 17 y los 21 todo el mundo te pregunta qué vas a hacer con tu vida. Casi nadie
+          te pregunta cómo estás por dentro. Tres episodios con voces jóvenes.
+        </p>
+      </div>
+      <img class="ilustra cuadrada" src="/img/podcast.jpg" width="1024" height="1024" loading="lazy" alt="Ilustración: tres jóvenes con audífonos conversan alrededor de un micrófono." />
+    </div>
+    <ol class="episodios">
+      {episodios.map((e, i) => (
+        <li data-medio>
+          <span class="num" aria-hidden="true">{i + 1}</span>
+          <div>
+            <h3>{e.titulo}</h3>
+            <p>{e.resumen}</p>
+            <div class="ondas" aria-hidden="true">{Array.from({ length: 28 }).map((_, k) => <i style={`--k:${k};--h:${Math.round(22 + 60 * Math.abs(Math.sin(k * 0.9)))}%`}></i>)}</div>
+            <audio controls preload="none" src={`/audio/${e.archivo}`}></audio>
+            <p class="pendiente" hidden>Este episodio estará disponible pronto.</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<section id="documental" class="lamina fondo-menta sobre-claro">
+  <div class="dentro">
+    <div class="cabeza">
+      <div>
+        <h2>Lejos de todo</h2>
+        <p class="entrada">
+          En el campo, pedir ayuda empieza caminando horas para encontrar señal. Un minidocumental
+          sobre las redes que acortan esa distancia: profes, promotores de salud y telepsicología.
+        </p>
+        <p class="ficha">Minidocumental, 3 minutos.</p>
+      </div>
+      <div class="video" data-medio>
+        <video controls preload="none" playsinline poster="/img/lejos-de-todo.jpg" src="/video/lejos-de-todo.mp4"></video>
+        <p class="pendiente" hidden>El minidocumental estará disponible pronto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('[data-medio]').forEach((caja) => {
+    const medio = caja.querySelector('audio, video');
+    // Con preload="none" el error solo llega al dar play: si el archivo aún
+    // no está en public/, se cambia el reproductor por el aviso.
+    medio.addEventListener('error', () => {
+      medio.hidden = true;
+      caja.querySelector('.pendiente').hidden = false;
+    });
+    medio.addEventListener('play', () => {
+      document.querySelectorAll('audio, video').forEach((otro) => otro !== medio && otro.pause());
+      caja.classList.add('sonando');
+    });
+    ['pause', 'ended'].forEach((ev) => medio.addEventListener(ev, () => caja.classList.remove('sonando')));
+  });
+</script>
+
+<style>
+  .episodios { list-style: none; padding: 0; margin: 3.5rem 0 0; display: grid; gap: 3rem; }
+  .episodios li { display: grid; grid-template-columns: auto 1fr; gap: clamp(1rem, 4vw, 2.5rem); align-items: start; border-top: 4px solid var(--tinta); padding-top: 1.5rem; }
+  .num { min-width: 1.1ch; font-family: var(--display); font-weight: 800; font-size: var(--paso-3); line-height: 0.8; font-variation-settings: 'wdth' 75; color: var(--azul); }
+  .episodios h3 { margin-bottom: 0.5rem; }
+  audio { width: 100%; max-width: 34rem; margin-top: 0.8rem; }
+  audio[hidden], video[hidden] { display: none; }
+
+  .ondas { display: flex; align-items: center; gap: 4px; height: 2.6rem; margin-top: 1.2rem; max-width: 34rem; }
+  .ondas i { flex: 1; max-width: 8px; border-radius: 99px; background: var(--tinta); height: var(--h); transform-origin: center; }
+  .sonando .ondas i { background: var(--rosa); animation: onda 0.9s ease-in-out calc(var(--k) * -0.11s) infinite alternate; }
+  @keyframes onda { to { transform: scaleY(0.3); } }
+
+  .pendiente { margin-top: 0.8rem; font-weight: 700; padding: 0.7rem 1rem; border: 3px dashed var(--tinta); border-radius: 0.8rem; display: inline-block; }
+  .pendiente[hidden] { display: none; }
+
+  .video { width: 100%; max-width: 22rem; justify-self: center; }
+  /* El video es vertical (576x1034); cover recorta el póster horizontal. */
+  video { width: 100%; aspect-ratio: 576 / 1034; object-fit: cover; background: var(--tinta); border: 4px solid var(--tinta); border-radius: 1.2rem; box-shadow: 10px 10px 0 var(--tinta); }
+  .ficha { margin-top: 1.6rem; font-size: var(--paso--1); }
+</style>

@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import { cronica } from '../data/cronica.js';
+---
+<Base titulo="«Diecisiete»: crónica | Cuatro por Cero" descripcion="Crónica de una vida que no cabe en la estadística." inicio="/" actual="cronica">
+  <article class="cronica lamina fondo-tinta">
+    <div class="columna">
+      <p class="ante">{cronica.antetitulo}</p>
+      <h1>{cronica.titulo}</h1>
+
+      <img class="ilustra portada" src="/img/cronica.jpg" width="1344" height="752" alt="Ilustración: una joven con morral sube de espaldas unas escaleras hacia un sol amarillo, con montañas al fondo." />
+
+      <aside class="cintillo">
+        Si tú o alguien que conoces atraviesa un momento difícil, no estás solo. En Colombia
+        puedes llamar gratis y de forma confidencial a la <a href="tel:106">Línea 106</a>.
+      </aside>
+
+      <details class="puerta">
+        <summary>
+          <span class="advertencia">Esta crónica describe un secuestro, violencia sexual y tortura. Léela cuando te sientas en condiciones de hacerlo.</span>
+          <span class="boton">Leer la crónica</span>
+        </summary>
+        <div class="cuerpo">
+          {cronica.parrafos.map((p) => <p>{p}</p>)}
+          <p class="reflexion">{cronica.reflexion}</p>
+        </div>
+        <div class="salida">
+          <a class="boton rosa" href="tel:106">Llamar a la Línea 106</a>
+          <a class="boton" href="/#como-estas">¿Y tú cómo estás?</a>
+        </div>
+      </details>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .columna { max-width: 40rem; margin-inline: auto; }
+  .ante { font-size: var(--paso--1); color: var(--menta); font-weight: 700; margin-bottom: 1rem; }
+  h1 { font-size: var(--paso-2); line-height: 1.05; color: var(--sol); }
+  .portada { margin-top: 2rem; border-color: var(--sol); box-shadow: 10px 10px 0 var(--azul); }
+  .cintillo { margin: 2.5rem 0; padding: 1rem 1.2rem; background: var(--azul); border-radius: 1rem; font-size: var(--paso--1); }
+  .cintillo a { font-weight: 700; color: var(--sol); }
+
+  summary { list-style: none; cursor: pointer; display: grid; gap: 1.5rem; justify-items: start; }
+  summary::-webkit-details-marker { display: none; }
+  .advertencia { font-family: var(--display); font-weight: 700; font-size: var(--paso-1); line-height: 1.2; }
+  details[open] summary { display: none; }
+
+  .cuerpo p { font-size: var(--paso-0); line-height: 1.7; max-width: none; margin-bottom: 1.4em; }
+  .cuerpo p:first-child::first-line { font-weight: 700; color: var(--sol); }
+  .cuerpo .reflexion { font-family: var(--display); font-weight: 700; font-size: var(--paso-1); line-height: 1.3; color: var(--menta); border-top: 3px solid var(--menta); padding-top: 1.5rem; margin-top: 2.5rem; }
+  .salida { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.5rem; }
+</style>

@@ -1,0 +1,29 @@
+---
+import { glosario } from '../data/contenido.js';
+---
+<section id="glosario" class="lamina fondo-azul">
+  <div class="dentro">
+    <h2>Glosario</h2>
+    <p class="entrada">Las palabras que usamos en este especial, explicadas sin rodeos.</p>
+    <div class="terminos">
+      {glosario.map(([palabra, significado]) => (
+        <details>
+          <summary>{palabra}</summary>
+          <p>{significado}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .terminos { margin-top: 3rem; display: grid; gap: 0 3rem; }
+  @media (min-width: 56rem) { .terminos { grid-template-columns: 1fr 1fr; align-items: start; } }
+  details { border-top: 2px solid #ffffff55; padding: 1rem 0; }
+  summary { font-family: var(--display); font-weight: 700; font-size: var(--paso-1); line-height: 1.15; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; color: var(--sol); font-weight: 800; }
+  details[open] summary::after { content: '−'; }
+  details[open] summary { color: var(--sol); }
+  details p { margin-top: 0.7rem; }
+</style>

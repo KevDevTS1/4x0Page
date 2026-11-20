@@ -1,0 +1,125 @@
+---
+import Logo from './Logo.astro';
+---
+<section id="inicio" class="hero fondo-azul">
+  <canvas data-hero-canvas aria-hidden="true"></canvas>
+  <div class="hero-texto">
+    <h1>
+      <span class="oculto-visual">Cuatro por Cero</span>
+      <span class="signo"><Logo uid="hero" capas={9} puntos /></span>
+    </h1>
+    <p class="lema" data-lema>
+      Cuatro veces más vulnerables.<br />
+      Cero motivos para callar:<br />
+      pedir ayuda es el primer paso.
+    </p>
+    <div class="acciones" data-lema>
+      <a class="boton" href="#como-estas">¿Y tú cómo estás?</a>
+      <a class="boton blanco" href="#el-pico">Ver las cifras</a>
+    </div>
+    <p class="oculto-visual">
+      Animación: frases como «estoy bien» o «no pasa nada» flotan en pantalla. Al tocarlas se
+      voltean y muestran lo que esconden: «no estoy bien», «necesito ayuda», «quiero hablar».
+    </p>
+    <p class="pista" data-pista hidden>
+      <span data-cuenta aria-live="polite"></span>
+      <button type="button" data-otra hidden>Empezar de nuevo</button>
+    </p>
+  </div>
+</section>
+
+<script>
+  import { animate, stagger, scroll } from 'motion';
+
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hero = document.querySelector('.hero');
+  const canvas = document.querySelector('[data-hero-canvas]');
+
+  if (!quieto) {
+    animate('.hero [data-glifo]', { y: [90, 0], opacity: [0, 1], rotate: [-10, 0] },
+      { delay: stagger(0.12), type: 'spring', stiffness: 160, damping: 14 });
+
+    // El volumen del logo apunta al lado contrario del cursor y la marca se
+    // inclina hacia él, como un sticker grueso visto desde otro ángulo.
+    const logo = hero.querySelector('[data-logo]');
+    const meta = { x: 0, y: 0 }, ahora = { x: 0, y: 0 };
+    let girando = 0;
+    const inclinar = () => {
+      ahora.x += (meta.x - ahora.x) * 0.12;
+      ahora.y += (meta.y - ahora.y) * 0.12;
+      logo.style.setProperty('--dx', (1 - ahora.x * 1.6).toFixed(3));
+      logo.style.setProperty('--dy', (1 - ahora.y * 1.6).toFixed(3));
+      logo.style.transform = `perspective(900px) rotateY(${(ahora.x * 12).toFixed(2)}deg) rotateX(${(-ahora.y * 10).toFixed(2)}deg)`;
+      const falta = Math.abs(meta.x - ahora.x) + Math.abs(meta.y - ahora.y) > 0.002;
+      girando = falta ? requestAnimationFrame(inclinar) : 0;
+    };
+    const apuntar = (x, y) => {
+      meta.x = x; meta.y = y;
+      if (!girando) girando = requestAnimationFrame(inclinar);
+    };
+    hero.addEventListener('pointermove', (e) => {
+      const r = logo.getBoundingClientRect();
+      const lim = (v) => Math.max(-1, Math.min(1, v));
+      apuntar(lim((e.clientX - (r.left + r.width / 2)) / (innerWidth / 2)), lim((e.clientY - (r.top + r.height / 2)) / (innerHeight / 2)));
+    }, { passive: true });
+    hero.addEventListener('pointerleave', () => apuntar(0, 0));
+    animate('[data-lema]', { opacity: [0, 1], y: [24, 0] }, { delay: stagger(0.15, { startDelay: 0.5 }), duration: 0.6 });
+    scroll(animate('.signo', { scale: [1, 0.7], y: [0, -60] }, { ease: 'linear' }),
+      { target: hero, offset: ['start start', 'end start'] });
+  }
+
+  // three.js pesa ~150 KB: se carga después del primer pintado y se omite si
+  // el usuario activó el ahorro de datos.
+  const ahorro = navigator.connection && navigator.connection.saveData;
+  if (canvas && !ahorro) {
+    const pista = document.querySelector('[data-pista]');
+    const cuenta = document.querySelector('[data-cuenta]');
+    const otra = document.querySelector('[data-otra]');
+    const tactil = matchMedia('(hover: none)').matches;
+    const alCambiar = (dichas, total) => {
+      pista.hidden = false;
+      otra.hidden = dichas < total;
+      if (dichas === 0) cuenta.textContent = `Esto es lo que decimos para no hablar. Mira lo que esconde cada frase, o ${tactil ? 'tócalas' : 'pasa el cursor'} para adelantarte.`;
+      else if (dichas < total) cuenta.textContent = `${dichas} de ${total} dichas. Puedes agarrarlas y moverlas.`;
+      else cuenta.textContent = 'Ya está todo dicho. Decirlo es el primer paso.';
+    };
+    const cargar = () => import('../scripts/hero3d.js')
+      .then((m) => m.iniciar(canvas, { texto: document.querySelector('.hero-texto'), alCambiar }))
+      .then((escena) => otra.addEventListener('click', () => escena.reiniciar()))
+      .catch(() => canvas.remove());
+    'requestIdleCallback' in window ? requestIdleCallback(cargar, { timeout: 1500 }) : setTimeout(cargar, 300);
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative; overflow: hidden;
+    min-height: calc(100svh - var(--barra));
+    display: grid; align-items: end;
+    padding: clamp(1.1rem, 4vw, 3rem);
+    padding-bottom: calc(clamp(1.1rem, 4vw, 3rem) + 4rem);
+  }
+  /* pan-y: arrastrar una frase en horizontal no bloquea el scroll vertical. */
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; }
+  .hero-texto { position: relative; max-width: var(--ancho); width: 100%; margin-inline: auto; pointer-events: none; }
+  .hero-texto a { pointer-events: auto; }
+  h1 { margin: 0; }
+  .signo {
+    display: block; transform-origin: left bottom;
+    width: clamp(15rem, 60vw, 35rem);
+  }
+  .signo :global(.gx) { animation: late 2.2s ease-in-out infinite; }
+  /* `scale` y no `transform`: Motion anima transform en la entrada. */
+  @keyframes late { 0%, 100% { scale: 1; } 50% { scale: 1.18; } }
+  .lema {
+    font-family: var(--display); font-weight: 700; font-size: var(--paso-2); line-height: 1.08;
+    margin-top: clamp(1rem, 3vw, 2rem); max-width: none;
+  }
+  .acciones { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.8rem; }
+  .pista { margin-top: 1.5rem; font-size: var(--paso-0); font-weight: 700; color: var(--blanco); max-width: 40ch; }
+  .pista[hidden], .pista [hidden] { display: none; }
+  .pista button { pointer-events: auto; margin-left: 0.6rem; background: transparent; border: 2px solid var(--sol); color: var(--sol); border-radius: 999px; padding: 0.2rem 0.9rem; font-weight: 700; }
+  .pista button:hover { background: var(--sol); color: var(--tinta); }
+  /* En celular se reserva la franja superior para las frases flotantes. */
+  @media (max-width: 719px) { .hero { padding-top: 19rem; } }
+</style>

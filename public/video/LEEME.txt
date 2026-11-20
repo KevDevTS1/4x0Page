@@ -1,0 +1,6 @@
+Coloca aquí el minidocumental "Lejos de todo" con este nombre exacto:
+
+  lejos-de-todo.mp4
+
+Opcional: una imagen de portada en  public/img/lejos-de-todo.jpg
+El video actual es vertical (576x1034); el reproductor está ajustado a ese formato.

@@ -1,0 +1,147 @@
+---
+import tasas from '../data/tasas.json';
+import { senales, frases, apoyo } from '../data/contenido.js';
+
+const u = tasas['2021'];
+const datos = {
+  general: u.General['No Aplica'],
+  edad: {
+    '12 a 16': u.Edad['12 a 16 años'],
+    '17 a 21': u.Edad['17 a 21 años'],
+    '22 a 26': u.Edad['22 a 26 años'],
+    '27 a 31': u.Edad['27 a 31 años'],
+  },
+  sexo: { Mujer: u.Sexo.Mujeres, Hombre: u.Sexo.Hombres },
+  zona: { 'Ciudad o pueblo': u['Área']['Cabecera Municipal'], 'Vereda o campo': u['Área']['Centros Poblados y Rural Disperso'] },
+};
+const perfil = [
+  { clave: 'edad', pregunta: '¿Cuántos años tienes?', opciones: [...Object.keys(datos.edad), '32 o más'] },
+  { clave: 'sexo', pregunta: '¿Cómo te identificas?', opciones: [...Object.keys(datos.sexo), 'Prefiero no decirlo'] },
+  { clave: 'zona', pregunta: '¿Dónde vives?', opciones: Object.keys(datos.zona) },
+];
+const total = perfil.length + senales.length;
+---
+<section id="como-estas" class="lamina fondo-rosa sobre-claro">
+  <div class="dentro">
+    <div class="cabeza">
+      <div>
+        <h2>¿Y tú cómo estás?</h2>
+        <p class="entrada">
+          Ocho preguntas, tres minutos. Es anónimo: tus respuestas no salen de tu dispositivo
+          ni se guardan en ningún lado.
+        </p>
+      </div>
+      <img class="ilustra" src="/img/como-estas.jpg" width="1344" height="752" loading="lazy" alt="Ilustración: dos amigas conversan sentadas en un andén; una apoya la mano en el hombro de la otra." />
+    </div>
+
+    <div class="tablero" data-interactivo data-tasas={JSON.stringify(datos)}>
+      <div class="avance" role="progressbar" aria-label="Avance" aria-valuemin="0" aria-valuemax={total} aria-valuenow="0"><span data-avance></span></div>
+
+      <div class="paso" data-paso="inicio">
+        <p class="grande">Primero tu perfil, luego cinco señales. Al final te llevas un kit para pedir ayuda o acompañar a alguien.</p>
+        <button type="button" class="boton" data-siguiente>Empezar</button>
+      </div>
+
+      {perfil.map((p) => (
+        <fieldset class="paso" data-paso="perfil" data-clave={p.clave} hidden>
+          <legend>{p.pregunta}</legend>
+          <div class="opciones">
+            {p.opciones.map((o) => <button type="button" class="opcion" data-valor={o}>{o}</button>)}
+          </div>
+        </fieldset>
+      ))}
+
+      {senales.map((s, i) => (
+        <fieldset class="paso" data-paso="senal" data-urgente={s.urgente ? '' : undefined} hidden>
+          <legend><span class="cuenta">Señal {i + 1} de {senales.length}. En las últimas dos semanas:</span>{s.pregunta}</legend>
+          <div class="opciones">
+            {['Sí', 'A veces', 'No'].map((o) => <button type="button" class="opcion" data-valor={o}>{o}</button>)}
+          </div>
+        </fieldset>
+      ))}
+
+      <div class="paso resultado" data-paso="resultado" hidden tabindex="-1">
+        <p class="titular" data-titular></p>
+        <p data-mensaje></p>
+        <p class="acciones">
+          <a class="boton" href="tel:106">Llamar gratis al 106</a>
+          <a class="boton blanco" href="tel:123" data-emergencia hidden>Peligro ahora: 123</a>
+        </p>
+
+        <h3>Tu grupo en cifras</h3>
+        <p class="chico">Tasa de intentos por 100.000 habitantes en 2021. Son datos de todo un grupo, no un pronóstico sobre ti.</p>
+        <div class="comparas" data-comparas></div>
+
+        <h3>Frases para pedir ayuda</h3>
+        <p class="chico">Elige una y mándasela a alguien de confianza. Empezar es lo más difícil.</p>
+        <ul class="frases">
+          {frases.map((f) => (
+            <li>
+              <p>«{f}»</p>
+              <span>
+                <button type="button" class="mini" data-copiar={f}>Copiar</button>
+                <a class="mini" href={`https://wa.me/?text=${encodeURIComponent(f)}`} target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        <h3>Si quien te preocupa es un amigo</h3>
+        <ol class="apoyo">
+          {apoyo.map((a) => <li><b>{a.titulo}.</b> {a.texto}</li>)}
+        </ol>
+
+        <p class="chico">Esto no es un diagnóstico ni reemplaza a un profesional de salud mental.</p>
+        <button type="button" class="mini" data-reiniciar>Volver a empezar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/interactivo.js';
+</script>
+
+<style>
+  .tablero {
+    margin-top: 3rem; background: var(--blanco); color: var(--tinta);
+    border: 4px solid var(--tinta); border-radius: 1.6rem; box-shadow: 12px 12px 0 var(--tinta);
+    padding: clamp(1.2rem, 4vw, 3rem); min-height: 22rem;
+  }
+  .avance { height: 0.7rem; background: #120a3a1f; border-radius: 99px; overflow: hidden; margin-bottom: 2rem; }
+  .avance span { display: block; height: 100%; width: 0; background: var(--azul); border-radius: 99px; transition: width 0.4s ease; }
+
+  .paso[hidden] { display: none; }
+  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  legend, .grande { font-family: var(--display); font-weight: 800; font-size: var(--paso-2); line-height: 1.08; padding: 0; margin-bottom: 1.8rem; max-width: 22ch; }
+  .cuenta { display: block; font-family: var(--texto); font-weight: 400; font-size: var(--paso--1); line-height: 1.4; margin-bottom: 0.6rem; }
+  .opciones { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .opcion {
+    background: var(--blanco); border: 3px solid var(--tinta); border-radius: 999px;
+    padding: 0.8rem 1.5rem; font-weight: 700; min-width: 6rem;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .opcion:hover { background: var(--sol); transform: translateY(-2px); }
+
+  .titular { font-family: var(--display); font-weight: 800; font-size: var(--paso-3); line-height: 0.95; font-variation-settings: 'wdth' 85; color: var(--azul); max-width: 14ch; margin-bottom: 1rem; }
+  .resultado h3 { margin: 3rem 0 0.5rem; }
+  .resultado .acciones { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; max-width: none; }
+  .resultado [hidden] { display: none; }
+  .chico { font-size: var(--paso--1); margin-bottom: 1rem; }
+
+  .comparas { display: grid; gap: 0.6rem; }
+  .comparas :global(.fila) { display: grid; grid-template-columns: 7.5rem 1fr 3.5rem; gap: 0.7rem; align-items: center; font-size: var(--paso--1); }
+  .comparas :global(.barra) { display: block; height: 1.4rem; background: var(--azul); border-radius: 0 99px 99px 0; transform-origin: left; }
+  .comparas :global(.base .barra) { background: #120a3a55; }
+  .comparas :global(.num) { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .frases { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+  .frases li { border-left: 6px solid var(--rosa); padding: 0.3rem 0 0.3rem 1rem; }
+  .frases p { font-family: var(--display); font-weight: 700; font-size: var(--paso-1); line-height: 1.2; max-width: 30ch; }
+  .frases span { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.6rem; }
+  .mini { background: transparent; border: 2px solid var(--tinta); border-radius: 999px; padding: 0.3rem 0.9rem; font-size: var(--paso--1); font-weight: 700; text-decoration: none; display: inline-block; }
+  .mini:hover { background: var(--sol); }
+
+  .apoyo { padding-left: 1.3rem; display: grid; gap: 0.7rem; max-width: 62ch; margin: 0 0 2.5rem; }
+  .apoyo li::marker { font-family: var(--display); font-weight: 800; color: var(--azul); }
+</style>
