@@ -17,7 +17,7 @@ Requiere Node 22.12 o superior.
 | Qué | Dónde |
 |---|---|
 | Audios del podcast | `public/audio/episodio-1.mp3`, `episodio-2.mp3`, `episodio-3.mp3` |
-| Minidocumental | `public/video/lejos-de-todo.mp4` |
+| Video de prevención | `public/video/lejos-de-todo.mp4` |
 | Imágenes | `public/img/` |
 | Cifras | `src/data/tasas.json` |
 | Textos (líneas, episodios, señales, frases, glosario) | `src/data/contenido.js` |

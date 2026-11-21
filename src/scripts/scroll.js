@@ -94,7 +94,7 @@ if (!quieto) {
     }, { amount: 0.3 });
   });
 
-  // Documental: el video gira en 3D hasta quedar de frente.
+  // Video de prevención: gira en 3D hasta quedar de frente.
   todos('.video').forEach((video) => {
     scroll((avance) => {
       const falta = 1 - avance;
