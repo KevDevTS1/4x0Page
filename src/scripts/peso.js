@@ -5,6 +5,7 @@ import { animate } from 'motion';
 import { piedras as NOMBRES, destinos as DESTINOS } from '../data/peso.js';
 
 const G = 2200, REBOTE = 0.22, ROCE = 0.9;
+const BORDE = 150;    // alto de los bordes de la bandeja, en unidades del personaje
 const VUELVE = 1.2;   // segundos en el suelo antes de regresar a la tabla
 const COLORES = ['#ffd60a', '#ff2d78', '#00d4a8', '#c9c2ff', '#ff9f1c'];
 const NS = 'http://www.w3.org/2000/svg';
@@ -39,6 +40,7 @@ export function empezarPeso(raiz) {
     ojos: [pieza('circle', { fill: TINTA, stroke: 'none' }), pieza('circle', { fill: TINTA, stroke: 'none' })],
     boca: pieza('path', { fill: 'none' }),
     tabla: pieza('rect', { fill: '#ffd60a' }),
+    bordes: [pieza('rect', { fill: '#ffd60a' }), pieza('rect', { fill: '#ffd60a' })],
   };
 
   function medir() {
@@ -48,8 +50,8 @@ export function empezarPeso(raiz) {
     const movil = W < 560;
     u = entre(W / (movil ? 520 : 700), 0.62, 1.1);
     suelo = H - 16;
-    const ancho = movil ? W * 0.72 : Math.min(W * 0.44, 340 * u);
-    tabla.cx = movil ? W / 2 : W * 0.34;
+    const ancho = movil ? W * 0.8 : Math.min(W * 0.5, 400 * u);
+    tabla.cx = movil ? W / 2 : W * 0.36;
     tabla.x1 = tabla.cx - ancho / 2;
     tabla.x2 = tabla.cx + ancho / 2;
     // Alturas de la tabla con el personaje de pie y agachado (ver dibujar()).
@@ -87,6 +89,7 @@ export function empezarPeso(raiz) {
     pon(fig.cabeza, { cx, cy, r: 27 * u, 'stroke-width': 5 * u });
     pon(fig.boca, { d: `M${cx - 10 * u},${cy + 11 * u} Q${cx},${cy + (11 + animo * 16 - 7) * u} ${cx + 10 * u},${cy + 11 * u}`, 'stroke-width': 3.5 * u });
     pon(fig.tabla, { x: x1, y, width: x2 - x1, height: g, rx: g / 2, 'stroke-width': 5 * u });
+    [x1 - g / 2, x2 - g / 2].forEach((x, i) => pon(fig.bordes[i], { x, y: y - BORDE * u, width: g, height: BORDE * u + g, rx: g / 2, 'stroke-width': 5 * u }));
   }
 
   function decir(texto) {
@@ -164,6 +167,12 @@ export function empezarPeso(raiz) {
         apoyada = true;
         encima++;
       }
+      // Bordes de la bandeja: retienen lo que ya está adentro. Una piedra
+      // recién soltada o lanzada los ignora hasta que se apoya.
+      if (!p.lanzada && p.x > tabla.x1 && p.x < tabla.x2 && p.y < tabla.y && p.y + p.r > tabla.y - BORDE * u) {
+        if (p.x < tabla.x1 + p.r) { p.x = tabla.x1 + p.r; p.vx = Math.abs(p.vx) * REBOTE; }
+        if (p.x > tabla.x2 - p.r) { p.x = tabla.x2 - p.r; p.vx = -Math.abs(p.vx) * REBOTE; }
+      }
       if (apoyada) p.lanzada = false;
       else if (p.lanzada) {
         const d = cercano(p, 0.5);
@@ -239,6 +248,8 @@ export function empezarPeso(raiz) {
         vx: 0, vy: 0, giro: 0, enSuelo: 0, lanzada: false, entregada: false, tocada: false,
       };
       el.addEventListener('pointerdown', (e) => {
+        // Sin esto, arrastrar selecciona el texto de la página.
+        e.preventDefault();
         agarrada = p;
         p.tocada = true;
         p.enSuelo = 0;
@@ -289,6 +300,8 @@ export function empezarPeso(raiz) {
     if (visible) { antes = 0; id = requestAnimationFrame(bucle); }
   }).observe(arena);
   addEventListener('resize', medir);
+  // Un arrastre que no atina a una piedra empezaría a seleccionar texto.
+  arena.addEventListener('mousedown', (e) => e.preventDefault());
   fin.querySelector('[data-peso-otra]').addEventListener('click', cargar);
 
   reiniciar = cargar;
